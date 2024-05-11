@@ -1,0 +1,149 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © jpnminer
+
+//@version=5
+indicator("INDICATOR-dynamic-EMA-RSI-SQ-LEO", overlay=true)
+//this strategy has fixed loss and profit
+
+// Define start and end date inputs
+//startDate = input.time(defval = timestamp("2022-11-01"), title = "Start Date")
+//endDate = input.time(defval = timestamp("2024-03-15"), title = "End Date")
+
+atrPeriod = input(10, "ATR Length")
+factor = input.float(3.0, "Factor", step = 0.01)
+rsi_len = input(14, "RSI Length")
+
+
+[_, direction] = ta.supertrend(factor, atrPeriod)
+rsi = ta.rsi(close, rsi_len )
+
+length = input(20, title="BB Length")
+mult = input(2.0,title="BB MultFactor")
+lengthKC=input(20, title="KC Length")
+multKC = input(1.5, title="KC MultFactor")
+
+useTrueRange = input(true, title="Use TrueRange (KC)")
+
+// Calculate BB
+source = close
+basis = ta.sma(source, length)
+dev = multKC * ta.stdev(source, length)
+upperBB = basis + dev
+lowerBB = basis - dev
+
+// Calculate KC
+ma = ta.sma(source, lengthKC)
+range_ = useTrueRange ? ta.tr : (high - low)
+rangema = ta.sma(range_, lengthKC)
+upperKC = ma + rangema * multKC
+lowerKC = ma - rangema * multKC
+
+sqzOn  = (lowerBB > lowerKC) and (upperBB < upperKC)
+sqzOff = (lowerBB < lowerKC) and (upperBB > upperKC)
+noSqz  = (sqzOn == false) and (sqzOff == false)
+
+
+//@variable Stop-loss price for exit commands.
+var float stopLoss   = na
+var float stopLoss_l   = na
+var float stopLoss_s   = na
+//@variable Take-profit price for exit commands.
+var float takeProfit = na
+var float takeProfit_l = na
+var float takeProfit_s = na
+
+var float stopLoss_long   = na
+//@variable Take-profit price for exit commands.
+var float stopLoss_short = na
+
+
+
+src = close
+
+// Input options for EMAs
+emaS_value = input.int(12, minval=1, title="EMA Small - Value")
+emaS = ta.ema(close, emaS_value)
+emaB_value = input.int(21, minval=1, title="EMA Big - Value")
+emaB = ta.ema(close, emaB_value)
+
+EMA_UpTrend_color = input(color.green, title="EMA UpTrend Color")
+EMA_DownTrend_color = input(#ff0000, title="EMA DownTrend Color")
+
+// Rules For Up and Down EMA trends
+EMA_UpTrend = emaS >= emaB
+EMA_DownTrend = emaS < emaB
+
+// Rules for Arrows by using EMAs Crossover state
+var float crossover = na
+// Determine crossover state
+if (crossover == 1)
+    crossover := na
+else if (EMA_UpTrend[1] and EMA_DownTrend)
+    crossover := -1
+else if (crossover == -1)
+    crossover := na
+else if (EMA_DownTrend[1] and EMA_UpTrend)
+    crossover := 1
+
+var float count = 0
+
+// Check if the current bar's time is within the specified date range
+//inDateRange = time >= startDate and time <= endDate
+var int open_trade = 0
+
+stop_distance = input(5, "SL distance")
+
+longcondition = EMA_UpTrend and rsi > 60 and sqzOff and open_trade == 0 and barstate.isconfirmed// and strategy.opentrades == 0// and count == 0 and inDateRange 
+
+stopLoss_l  := ta.lowest(low, stop_distance)
+stopLoss_s  := ta.highest(high, stop_distance)
+
+
+if longcondition
+    open_trade := 1
+    stopLoss := stopLoss_l 
+//alertcondition(longcondition, title="Enter Long", message="Long condition met. Consider entering a long position.")
+shortcondition = EMA_DownTrend and rsi < 40 and sqzOff and open_trade == 0 and barstate.isconfirmed// and strategy.opentrades == 0//and count == 1 and inDateRange
+
+if shortcondition
+    open_trade := 2
+    stopLoss := stopLoss_s
+//alertcondition(shortcondition, title="Enter Short", message="Long condition met. Consider entering a short position.")
+
+stop_condition = open_trade == 1 and close <= stopLoss or open_trade == 2 and close >= stopLoss// and barstate.isconfirmed
+
+if stop_condition
+    open_trade := 0
+    stopLoss := na
+
+// Dynamic exit conditions based on RSI for an open long position
+exitLongCondition = EMA_DownTrend and rsi < 45 and open_trade == 1 and barstate.isconfirmed//indicator.position_size > 0 and 
+if exitLongCondition
+    open_trade := 0
+    stopLoss := na
+
+exitShortCondition = EMA_UpTrend and rsi > 55 and open_trade == 2 and barstate.isconfirmed//indicator.position_size < 0 and 
+if exitShortCondition
+    open_trade := 0
+    stopLoss := na
+
+
+// Plotting Entry Signals
+// Improved Plotting Entry Signals
+plotshape(series=longcondition, location=location.belowbar, color=color.green, style=shape.triangleup, size=size.small, title="Long Entry", text="Long")
+plotshape(series=shortcondition, location=location.abovebar, color=color.red, style=shape.triangledown, size=size.small, title="Short Entry", text="Short")
+
+// Improved Plotting Exit Signals
+plotshape(series=stop_condition, location=location.belowbar, color=color.black, style=shape.square, size=size.small, title="Stop Hit", text="Stop Hit")
+plotshape(series=exitLongCondition, location=location.belowbar, color=color.green, style=shape.square, size=size.small, title="Long Exit", text="TP long")
+plotshape(series=exitShortCondition, location=location.abovebar, color=color.red, style=shape.square, size=size.small, title="Short Exit", text="TP short")
+
+// Plotting Stop Loss Levels for Long and Short
+plot(series = not na(stopLoss) ? stopLoss : na, color=color.red, linewidth=1, title="Stop Loss", style=plot.style_circles)
+//plot(series=stopLoss_s, color=color.blue, linewidth=1, title="Stop Loss for Short")
+
+// Alert Conditions
+alertcondition(longcondition, title="Enter Long", message="Long condition met. Consider entering a long position.")
+alertcondition(shortcondition, title="Enter Short", message="Short condition met. Consider entering a short position.")
+alertcondition(exitLongCondition, title="Exit Long", message="Conditions met to exit long position.")
+alertcondition(exitShortCondition, title="Exit Short", message="Conditions met to exit short position.")
