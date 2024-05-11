@@ -1,6 +1,8 @@
 # BacktestingTrade
 Here you can find a few implementations of ideas, practice from books and more about trading, quantitative trading, data analysis and so on.
 
+![Image1]_(_images/bullvsbear.webp)
+
 ## Usage
 Navigate to the cloned directory and explore various scripts and Jupyter Notebooks for implementing and testing trading strategies.
 
