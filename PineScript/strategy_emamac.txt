@@ -1,0 +1,96 @@
+//@version=5
+strategy("EMA and MACD Strategy - With Stop Loss and Date Filter", overlay=true)
+
+// Define the evaluation period
+startDate = timestamp("GMT", 2024, 1, 1, 0, 0)
+endDate = timestamp("GMT", 2024, 2, 10, 0, 0)
+//isWithinEvaluationPeriod = (time >= startDate and time < endDate)
+
+// Michael's EMA Logic
+emaS_value = 12
+emaB_value = 21
+emaS = ta.ema(close, emaS_value)
+emaB = ta.ema(close, emaB_value)
+EMA_UpTrend = emaS >= emaB
+EMA_DownTrend = emaS < emaB
+colorChangeToGreen = EMA_UpTrend and not EMA_UpTrend[1]
+colorChangeToRed = EMA_DownTrend and not EMA_DownTrend[1]
+
+// MACD Logic
+fast_length = 12
+slow_length = 26
+signal_length = 9
+src = close
+fast_ma = ta.ema(src, fast_length)
+slow_ma = ta.ema(src, slow_length)
+macd = fast_ma - slow_ma
+signal = ta.ema(macd, signal_length)
+hist = macd - signal
+
+// Track consecutive MACD increases/decreases
+var int macdIncreases = 0
+var int macdDecreases = 0
+if (hist >= hist[1])
+    macdIncreases += 1
+//else
+ //   macdIncreases := 0
+if (hist <= hist[1])
+    macdDecreases += 1
+//else
+ //   macdDecreases := 0
+
+// Entry Conditions
+var float lowStop = na
+var float highStop = na
+
+//if (isWithinEvaluationPeriod)
+if (colorChangeToGreen and strategy.position_size <= 0)
+    if (strategy.position_size < 0)
+        strategy.close("Short")
+    strategy.entry("Long", strategy.long)
+    lowStop := ta.lowest(low, 6) // Lowest price of the previous 5 candles for Long
+
+if (colorChangeToRed and strategy.position_size >= 0)
+    if (strategy.position_size > 0)
+        strategy.close("Long")
+    strategy.entry("Short", strategy.short)
+    highStop := ta.highest(high, 6) // Highest price of the previous 5 candles for Short
+
+// Exit Conditions
+// Exit Conditions for Long
+exitLongCondition1 = macdIncreases >= 5 and hist < hist[1] and EMA_UpTrend
+exitLongCondition2 = colorChangeToRed // EMA color change to red
+exitLongCondition3 = lowStop != na and close < lowStop // Stop Loss triggered for Long
+
+// Exit Conditions for Short
+exitShortCondition1 = macdDecreases >= 3 and hist > hist[1] and EMA_DownTrend
+exitShortCondition2 = colorChangeToGreen // EMA color change to green
+exitShortCondition3 = highStop != na and close > highStop // Stop Loss triggered for Short
+
+//if (isWithinEvaluationPeriod)
+    
+if ((exitLongCondition1 or exitLongCondition2 or exitLongCondition3) and strategy.position_size > 0)
+    strategy.close("Long")
+    macdIncreases := 0
+    macdDecreases := 0
+    lowStop := na // Reset stop loss
+
+if ((exitShortCondition1 or exitShortCondition2 or exitShortCondition3) and strategy.position_size < 0)
+    strategy.close("Short")
+    macdDecreases := 0
+    macdIncreases := 0
+    highStop := na // Reset stop loss
+
+// Buy Alert Condition
+alertcondition(condition = colorChangeToGreen and strategy.position_size <= 0, title="LONG Signal", message="A buy signal was generated based on EMA and MACD strategy.")
+alertcondition(condition = (exitLongCondition1 or exitLongCondition2 or exitLongCondition3) and strategy.position_size > 0, title="SELL LONG Signal", message="A SELL signal was generated based on EMA and MACD strategy.")
+
+
+// Sell Alert Condition
+alertcondition(condition = colorChangeToRed and strategy.position_size >= 0, title="SHORT Signal", message="A sell signal was generated based on EMA and MACD strategy.")
+alertcondition(condition = (exitShortCondition1 or exitShortCondition2 or exitShortCondition3) and strategy.position_size < 0, title="SELL SHORT Signal", message="A SELL signal was generated based on EMA and MACD strategy.")
+
+
+// Visualization (Optional) and isWithinEvaluationPeriod
+plotshape(series=colorChangeToGreen, location=location.belowbar, color=color.green, style=shape.labelup, text="Buy", size=size.small)
+plotshape(series=colorChangeToRed, location=location.abovebar, color=color.red, style=shape.labeldown, text="Sell", size=size.small)
