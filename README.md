@@ -1,4 +1,4 @@
-# BacktestingTrade
+# TradersPlayground
 Here you can find a few implementations of ideas, practice from books and more about trading, quantitative trading, data analysis and so on.
 
 ![Image1](_images/bullvsbear.webp)
