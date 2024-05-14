@@ -16,9 +16,10 @@ Navigate to the cloned directory and explore various scripts and Jupyter Noteboo
 The repository includes several folders containing specific scripts and Jupyter Notebooks:
 - PineScript: Scripts written in Pine Script for trading.
 - Python4Finance: Python scripts for financial data analysis and algo trading. These codes are inspired by the book "Python for Finance Cookbook" as a way to learn and do. I deal both with crypto and stocks here. Usually the crypto notebooks go deeper.
-- Hummingbot: Configurations for using Hummingbot for trading.
+- Hummingbot and personal_hummingbot: Configurations for using Hummingbot for trading.
 - Hyperliquid-Python-SDK: SDK usage examples for trading APIs.
 - Pattern Recognition: Scripts for identifying trading patterns.
+- More to come to find the best algo-trading software!
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
