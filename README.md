@@ -5,7 +5,9 @@ I am a crypto trader so I deal both with traditional finance (stocks, indexes, e
 ![Image1](_images/bullvsbear.webp)
 
 ## Usage
-Navigate to the cloned directory and explore various scripts and Jupyter Notebooks for implementing and testing trading strategies.
+Navigate to the cloned directory and explore various scripts and Jupyter Notebooks for implementing and testing trading strategies. 
+1. Clone the repository, 
+2. Run the setup script to create a virtual environment and install dependencies running the ``setup.sh`` (see inside if using Windows).
 
 ## Features
 - Implementations of trading strategies from books and research.
