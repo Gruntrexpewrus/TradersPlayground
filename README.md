@@ -1,5 +1,5 @@
 # TradersPlayground
-Here you can find a few implementations of ideas, practice from books and more about trading, quantitative trading, data analysis and so on.
+Here you can find a few implementations of ideas, practice from books and more about trading, **Algorithmic Trading**, data analysis and so on.
 I am a crypto trader so I deal both with traditional finance (stocks, indexes, etc) and crypto (BTC, ETH, etc.) from CEXs and DEXs.
 
 ![Image1](_images/bullvsbear.webp)
