@@ -21,6 +21,7 @@ The repository includes several folders containing specific scripts and Jupyter 
 - Hummingbot and personal_hummingbot: Configurations for using Hummingbot for trading.
 - Hyperliquid-Python-SDK: SDK usage examples for trading APIs.
 - Pattern Recognition: Scripts for identifying trading patterns.
+- golang: you'll find for now basic codes in go.
 - More to come to find the best algo-trading software!
 
 ## License
