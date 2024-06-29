@@ -22,6 +22,7 @@ The repository includes several folders containing specific scripts and Jupyter 
 - Hyperliquid-Python-SDK: SDK usage examples for trading APIs.
 - Pattern Recognition: Scripts for identifying trading patterns.
 - golang: you'll find for now basic codes in go.
+- cryptozombies: learning solidity from the famous cryptozombies, tbh for fun :)
 - More to come to find the best algo-trading software!
 
 ## License
