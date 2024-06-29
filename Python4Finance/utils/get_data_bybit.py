@@ -1,7 +1,7 @@
 import pandas as pd
 from pybit.unified_trading import HTTP
 
-def get_data_with_volume_bybit(session, symbol, start_date, end_date, interval = "D", category = "linear", limit = 200):
+def get_data_with_volume_bybit(session, symbol, start_date, end_date, interval = "D", category = "linear", limit = 200, invert = False, index = True):
     
     data = session.get_kline(
     category=category,
@@ -26,14 +26,20 @@ def get_data_with_volume_bybit(session, symbol, start_date, end_date, interval =
         df[col] = df[col].astype(float)
 
     # Sort the DataFrame by startTime in descending order
-    df = df.sort_values(by='startTime', ascending=False)
+    if not invert:
+        df = df.sort_values(by='startTime', ascending=False)
+    else:
+        df = df.sort_values(by='startTime', ascending=True)
+    
+    if index:
+        df.set_index('startTime', inplace= True)
     
     print(df.head())
     
     return df
 
 
-def get_data_OI_bybit(session, symbol, start_date, end_date, interval = "1d", category = "linear", limit = 200):
+def get_data_OI_bybit(session, symbol, start_date, end_date, interval = "1d", category = "linear", limit = 200, invert = False, index = True):
     
     data_OI = session.get_open_interest(
     category = category,
@@ -54,8 +60,14 @@ def get_data_OI_bybit(session, symbol, start_date, end_date, interval = "1d", ca
     df['startTime'] = pd.to_datetime(df['timestamp'].astype(float), unit='ms')
 
     # Sort the DataFrame by startTime in descending order
-    df = df.sort_values(by='startTime', ascending=False)
+    if not invert:
+        df = df.sort_values(by='startTime', ascending=False)
+    else:
+        df = df.sort_values(by='startTime', ascending=True)
 
     # Display the DataFrame
+    if index:
+        df.set_index('startTime', inplace= True)
+        
     print(df.head())
     return df
